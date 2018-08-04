@@ -9,29 +9,44 @@
 #include <QSqlRecord>
 #include <QVariant>
 
+#include <QDebug>
 
 //typedef QList<QVariant> QVarList;
-
-
 
 
 class DataBaseBridge : public QObject
 {
     Q_OBJECT
-public:
-    // construction and destruction function
+private:
+    DataBaseBridge& operator=(const DataBaseBridge&);
+    DataBaseBridge(const DataBaseBridge&);
+
     explicit DataBaseBridge(QObject *parent = nullptr);
     explicit DataBaseBridge(const QString &hostName, const QString &databaseName,
                             const QString &userName, const QString &password, QObject *parent = nullptr);
     explicit DataBaseBridge(const QString &hostName, QObject *parent = nullptr);
+
+public:
+
+    // get instance
+    static DataBaseBridge *getInstance();
+    static void init(const QString &hostName, QObject *parent = nullptr);
+
+
+    // construction and destruction function
+
+    // disable (copy) construct function and assignment function
+
+
+
     ~DataBaseBridge();
     // table operation
-    void createTable(const QString &table, const QStringList& fields);
-    void createTable(const QString &table, const QString& fields);
-    void dropTable(const QString &table);
+    //bool createTable(const QString &table, const QStringList& fields);
+    bool createTable(const QString &table, const QString& fields);
+    bool dropTable(const QString &table);
     // item operation
-    void insertItem(const QString& table, const QList<QVariant>& varList);
-    void deleteItem(const QString& table, const QString& condition = QString());
+    bool insertItem(const QString& table, const QList<QVariant>& varList);
+    bool deleteItem(const QString& table, const QString& condition = QString());
     const QList<QVariant> &searchFirstItem(const QString& table,
                                       const QString& target = QString("*"),
                                       const QString& condition = QString());
@@ -42,19 +57,30 @@ public:
     void closeDataBase();
     bool isDataBaseOpen();
 
-signals:
-
-public slots:
 
 protected:
-    void checkSuccess(bool success, const QString &action);
+    bool checkSuccess(bool success, const QString &action);
     QString generateInsertString(int cntVar);
     QString addWherePrefix(const QString& str);
 
 private:
+
     QList<QVariant> listvar;
     QSqlDatabase db;
     QSqlQuery query;
+
+
+    class DataBaseBridgeGarbo
+    {
+    public:
+        ~DataBaseBridgeGarbo()
+        {
+            qDebug()<<"delete instance";
+            if(instance) delete instance;
+        }
+    };
+    static DataBaseBridge *instance;
+    static DataBaseBridgeGarbo garbo;
 };
 
 #endif // DATABASEBRIDGE_H
